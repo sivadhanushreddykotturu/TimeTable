@@ -16,16 +16,13 @@ export default function Header({ onRefresh }) {
   };
 
   return (
-    <div style={{ 
-      display: "flex", 
-      justifyContent: "space-between", 
-      alignItems: "center", 
-      padding: "10px 20px", 
-      borderBottom: "1px solid #ccc", 
-      backgroundColor: "#f9f9f9" 
-    }}>
-      <button onClick={handleLogout}>Logout</button>
-      <button onClick={onRefresh}>Refresh</button>
+    <div className="app-header">
+      <button onClick={handleLogout} className="secondary">
+        Logout
+      </button>
+      <button onClick={onRefresh}>
+        Refresh
+      </button>
     </div>
   );
 }

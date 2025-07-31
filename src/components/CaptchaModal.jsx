@@ -111,14 +111,12 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
       onClick={onClose}
     >
       <div
+        className="card"
         style={{
-          backgroundColor: "white",
-          padding: "30px",
-          borderRadius: "12px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
           maxWidth: "400px",
           width: "90%",
           textAlign: "center",
+          margin: "20px",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -126,70 +124,58 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
           Enter CAPTCHA to Refresh
         </h3>
         
-                 <div style={{ marginBottom: "20px" }}>
-           <div
-             style={{
-               width: "150px",
-               height: "50px",
-               border: "1px solid #ddd",
-               borderRadius: "4px",
-               margin: "0 auto 15px",
-               display: "flex",
-               alignItems: "center",
-               justifyContent: "center",
-               backgroundColor: "#f0f0f0",
-             }}
-           >
-             {imageLoading ? (
-               <span style={{ fontSize: "12px", color: "#666" }}>Loading...</span>
-             ) : (
-               <img
-                 src={captchaUrl}
-                 alt="CAPTCHA"
-                 style={{
-                   maxWidth: "100%",
-                   maxHeight: "100%",
-                 }}
-                 onLoad={() => {
-                   console.log("CAPTCHA image loaded successfully");
-                   setImageLoading(false);
-                 }}
-                 onError={(e) => {
-                   console.error("CAPTCHA image failed to load:", e);
-                   setImageLoading(false);
-                   setError("Failed to load CAPTCHA image");
-                 }}
-               />
-             )}
-           </div>
-           
-           {refreshing && (
-             <div style={{ 
-               fontSize: "12px", 
-               color: "#007bff", 
-               marginBottom: "10px",
-               textAlign: "center"
-             }}>
-               wait for 15 seconds to load
-             </div>
-           )}
-           
-           <button
-             onClick={handleRefreshCaptcha}
-             style={{
-               background: "none",
-               border: "1px solid #007bff",
-               color: "#007bff",
-               padding: "5px 10px",
-               borderRadius: "4px",
-               cursor: "pointer",
-               fontSize: "12px",
-             }}
-             disabled={isLoading || refreshing}
-           >
-             Refresh CAPTCHA
-           </button>
-         </div>
+        <div className="captcha-container">
+        <div style={{ position: "relative", marginBottom: "15px" }}>
+  {imageLoading && (
+    <div className="captcha-loading" style={{ textAlign: "center" }}>
+      Loading CAPTCHA...
+    </div>
+  )}
+
+  <img
+    src={captchaUrl}
+    alt="CAPTCHA"
+    className="captcha-image"
+    style={{
+      margin: "0 auto",
+      display: imageLoading ? "none" : "block"
+    }}
+    onLoad={() => {
+      console.log("CAPTCHA image loaded successfully");
+      setImageLoading(false);
+    }}
+    onError={(e) => {
+      console.error("CAPTCHA image failed to load:", e);
+      setImageLoading(false);
+      setError("Failed to load CAPTCHA image");
+    }}
+  />
+</div>
+
+          
+          {refreshing && (
+            <div style={{ 
+              fontSize: "12px", 
+              color: "#007bff", 
+              marginBottom: "10px",
+              textAlign: "center"
+            }}>
+              Wait for 15 seconds to load
+            </div>
+          )}
+          
+          <button
+            onClick={handleRefreshCaptcha}
+            style={{
+              fontSize: "14px",
+              padding: "8px 16px",
+              marginBottom: "15px"
+            }}
+            disabled={isLoading || refreshing}
+          >
+            Refresh CAPTCHA
+          </button>
+        </div>
 
         <input
           type="text"
@@ -198,12 +184,7 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
           onChange={(e) => setCaptchaInput(e.target.value)}
           style={{
             width: "100%",
-            padding: "12px",
-            border: "1px solid #ddd",
-            borderRadius: "6px",
-            fontSize: "16px",
             marginBottom: "15px",
-            boxSizing: "border-box",
           }}
           onKeyPress={(e) => e.key === "Enter" && handleSubmit()}
           disabled={isLoading}
@@ -225,30 +206,14 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            style={{
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              padding: "12px 24px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
+            className="primary"
           >
             {isLoading ? "Submitting..." : "Submit"}
           </button>
           <button
             onClick={onClose}
             disabled={isLoading}
-            style={{
-              backgroundColor: "#6c757d",
-              color: "white",
-              border: "none",
-              padding: "12px 24px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
+            className="secondary"
           >
             Cancel
           </button>

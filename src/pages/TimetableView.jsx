@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { clearCredentials } from "../../utils/storage.js";
 import CaptchaModal from "../components/CaptchaModal";
 
-
 const slotTimes = {
   1: { start: "07:10", end: "08:00" },
   2: { start: "08:00", end: "08:50" },
@@ -70,21 +69,14 @@ export default function TimetableView() {
     }
 
     return (
-      <div key={day} style={{ marginBottom: "24px" }}>
+      <div key={day} className="timetable-day">
         <h3>{day}</h3>
         {merged.map((block, idx) => (
-          <div
-            key={idx}
-            style={{
-              background: "#f2f2f2",
-              padding: "12px",
-              borderRadius: "8px",
-              marginBottom: "8px",
-            }}
-          >
-            <strong>{block.content}</strong>
-            <br />
-            {slotTimes[block.startSlot].start} – {slotTimes[block.endSlot].end}
+          <div key={idx} className="class-block">
+            <div className="class-name">{block.content}</div>
+            <div className="class-time">
+              {slotTimes[block.startSlot].start} – {slotTimes[block.endSlot].end}
+            </div>
           </div>
         ))}
       </div>
@@ -92,31 +84,26 @@ export default function TimetableView() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      {/* 🔝 Top Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 20,
-          alignItems: "center",
-        }}
-      >
-        <h2>Your Timetable</h2>
-        <div>
-          <button onClick={() => navigate("/home")} style={{ marginRight: 10 }}>
+    <div className="container">
+      <div className="page-header">
+        <h1 className="page-title">Your Timetable</h1>
+        <div className="action-buttons">
+          <button onClick={() => navigate("/home")}>
             Back to Home
           </button>
-          <button onClick={refreshTimetable} style={{ marginRight: 10 }}>
+          <button onClick={refreshTimetable}>
             Refresh
           </button>
-          <button onClick={logout}>Logout</button>
+          <button onClick={logout} className="secondary">
+            Logout
+          </button>
         </div>
       </div>
 
-      {/* 🧾 Timetable */}
       {Object.keys(timetable).length === 0 ? (
-        <p>No timetable loaded. Please log in.</p>
+        <div className="card">
+          <p className="text-center">No timetable loaded. Please log in.</p>
+        </div>
       ) : (
         Object.entries(timetable).map(([day, slots]) =>
           renderDay(day, slots)

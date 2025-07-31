@@ -83,32 +83,25 @@ export default function Home() {
     <>
       <Header onRefresh={handleRefresh} />
 
-      <div style={{ padding: 20 }}>
-        <h2>Current Class</h2>
-        <div
-          style={{
-            backgroundColor: "#f3f3f3",
-            padding: "10px",
-            borderRadius: "6px",
-            marginBottom: "20px",
-          }}
-        >
-          {current}
+      <div className="container">
+        <div className="class-card">
+          <h2>Current Class</h2>
+          <div className="class-card-content">
+            {current}
+          </div>
         </div>
 
-        <h2>Next Class</h2>
-        <div
-          style={{
-            backgroundColor: "#f3f3f3",
-            padding: "10px",
-            borderRadius: "6px",
-            marginBottom: "20px",
-          }}
-        >
-          {next}
+        <div className="class-card">
+          <h2>Next Class</h2>
+          <div className="class-card-content">
+            {next}
+          </div>
         </div>
 
-        <button onClick={() => navigate("/timetable")}>
+        <button 
+          onClick={() => navigate("/timetable")} 
+          className="primary full-width-mobile"
+        >
           View Full Timetable
         </button>
       </div>

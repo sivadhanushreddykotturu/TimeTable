@@ -8,16 +8,26 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
   const [captchaUrl, setCaptchaUrl] = useState("");
+  const [captchaLoading, setCaptchaLoading] = useState(true);
 
   const navigate = useNavigate();
 
   const refreshCaptcha = () => {
+    setCaptchaLoading(true);
     setCaptchaUrl(`https://tinyurl.com/klcaptcha?ts=${Date.now()}`);
   };
 
   useEffect(() => {
     refreshCaptcha();
   }, []);
+
+  const handleCaptchaLoad = () => {
+    setCaptchaLoading(false);
+  };
+
+  const handleCaptchaError = () => {
+    setCaptchaLoading(false);
+  };
 
   const handleLogin = async () => {
     if (!username || !password || !captcha) {
@@ -49,75 +59,77 @@ export default function Login() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Login to ERP</h2>
+    <div className="container">
+      <div className="text-center mb-20">
+        <h1>Login to ERP</h1>
+      </div>
 
-      <input
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        style={{ display: "block", marginBottom: 10 }}
-      />
+      <div className="card">
+        <div className="mb-16">
+          <input
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="mb-16"
+          />
 
-      <input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ display: "block", marginBottom: 20 }}
-      />
+          <input
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mb-20"
+          />
+        </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 14, marginBottom: 6, color: "#555" }}>
-          CAPTCHA takes 5–6 seconds to load. Please wait...
-        </p>
+        <div className="captcha-container">
+          <p className="mb-16">
+            CAPTCHA takes 5–6 seconds to load. Please wait...
+          </p>
 
-        <div
-          style={{
-            width: 150,
-            height: 50,
-            backgroundColor: "#f0f0f0",
-            marginBottom: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid #ccc",
-          }}
-        >
-          {captchaUrl ? (
+          <div
+            style={{
+              width: "150px",
+              height: "50px",
+              marginBottom: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid #ccc",
+              backgroundColor: "#f9f9f9",
+            }}
+          >
             <img
               src={captchaUrl}
               alt="CAPTCHA"
-              style={{ maxWidth: "100%", maxHeight: "100%" }}
+              className="captcha-image"
+              style={{ maxWidth: "100%", maxHeight: "100%", display: captchaLoading ? "none" : "block" }}
+              onLoad={handleCaptchaLoad}
+              onError={handleCaptchaError}
             />
-          ) : (
-            <span>Loading...</span>
-          )}
+            {captchaLoading && <span>Loading CAPTCHA...</span>}
+          </div>
+
+          <button
+            onClick={refreshCaptcha}
+            className="mb-16"
+            style={{ fontSize: "14px", padding: "8px 16px" }}
+          >
+            Reload CAPTCHA
+          </button>
+
+          <input
+            placeholder="Enter CAPTCHA"
+            value={captcha}
+            onChange={(e) => setCaptcha(e.target.value)}
+            className="captcha-input"
+          />
         </div>
 
-        <button
-          onClick={refreshCaptcha}
-          style={{
-            marginBottom: 10,
-            padding: "4px 10px",
-            fontSize: 12,
-            cursor: "pointer",
-          }}
-        >
-          Reload CAPTCHA
+        <button onClick={handleLogin} className="primary full-width-mobile">
+          Login
         </button>
-
-        <input
-          placeholder="Enter CAPTCHA"
-          value={captcha}
-          onChange={(e) => setCaptcha(e.target.value)}
-          style={{ display: "block", width: "200px" }} // Adjusted width to 200px
-        />
       </div>
-
-      <button onClick={handleLogin} style={{ marginTop: 10 }}>
-        Login
-      </button>
     </div>
   );
 }

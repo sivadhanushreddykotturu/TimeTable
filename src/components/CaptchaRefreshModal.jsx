@@ -5,10 +5,19 @@ import { getCredentials } from "../utils/storage";
 export default function CaptchaRefreshModal({ onClose, onSuccess }) {
   const [captchaUrl, setCaptchaUrl] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
+  const [captchaLoading, setCaptchaLoading] = useState(true);
 
   useEffect(() => {
     setCaptchaUrl(`https://tinyurl.com/klcaptcha?ts=${Date.now()}`);
   }, []);
+
+  const handleCaptchaLoad = () => {
+    setCaptchaLoading(false);
+  };
+
+  const handleCaptchaError = () => {
+    setCaptchaLoading(false);
+  };
 
   const handleRefresh = async () => {
     const creds = getCredentials();
@@ -41,67 +50,66 @@ export default function CaptchaRefreshModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h3>Refresh Timetable</h3>
-        <p style={{ fontSize: 14, marginBottom: 6 }}>Enter the new CAPTCHA:</p>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        background: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(5px)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="card"
+        style={{
+          minWidth: 280,
+          maxWidth: 320,
+          margin: "20px",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 style={{ marginTop: 0, marginBottom: "20px" }}>Refresh Timetable</h3>
+        <p className="mb-16">Enter the new CAPTCHA:</p>
 
-        <div style={captchaBoxStyle}>
-          {captchaUrl ? (
+        <div className="captcha-container">
+          {captchaLoading ? (
+            <div className="captcha-loading">
+              Loading CAPTCHA...
+            </div>
+          ) : (
             <img
               src={captchaUrl}
               alt="CAPTCHA"
-              style={{ maxWidth: "100%", maxHeight: "100%" }}
+              className="captcha-image"
+              onLoad={handleCaptchaLoad}
+              onError={handleCaptchaError}
             />
-          ) : (
-            <span>Loading CAPTCHA...</span>
           )}
+
+          <input
+            placeholder="Type CAPTCHA"
+            value={captchaInput}
+            onChange={(e) => setCaptchaInput(e.target.value)}
+            className="captcha-input"
+          />
         </div>
 
-        <input
-          placeholder="Type CAPTCHA"
-          value={captchaInput}
-          onChange={(e) => setCaptchaInput(e.target.value)}
-          style={{ marginTop: 10, width: "100%", padding: 8 }}
-        />
-
-        <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between" }}>
-          <button onClick={onClose}>Cancel</button>
-          <button onClick={handleRefresh}>Submit</button>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+          <button onClick={onClose} className="secondary">
+            Cancel
+          </button>
+          <button onClick={handleRefresh} className="primary">
+            Submit
+          </button>
         </div>
       </div>
     </div>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  height: "100vh",
-  background: "rgba(0,0,0,0.3)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalStyle = {
-  background: "#fff",
-  padding: 20,
-  borderRadius: 8,
-  minWidth: 280,
-  maxWidth: 320,
-};
-
-const captchaBoxStyle = {
-  width: 150,
-  height: 50,
-  backgroundColor: "#f0f0f0",
-  border: "1px solid #ccc",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  marginTop: 8,
-};
