@@ -88,11 +88,19 @@ export default function Home() {
   );
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [semester, setSemester] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
 
   useEffect(() => {
     const { currentClass, nextClass } = findCurrentAndNextClass(timetable);
     setCurrent(currentClass);
     setNext(nextClass);
+    
+    // Get stored semester and academic year
+    const storedSemester = localStorage.getItem("semester") || "odd";
+    const storedAcademicYear = localStorage.getItem("academicYear") || "2024-25";
+    setSemester(storedSemester);
+    setAcademicYear(storedAcademicYear);
   }, [timetable]);
 
   const handleRefresh = () => {
@@ -112,11 +120,29 @@ export default function Home() {
     setToast(prev => ({ ...prev, show: false }));
   };
 
+  const getSemesterDisplayName = (sem) => {
+    switch(sem) {
+      case 'odd': return 'Odd Semester';
+      case 'even': return 'Even Semester';
+      case 'summer': return 'Summer Semester';
+      default: return sem;
+    }
+  };
+
   return (
     <>
       <Header onRefresh={handleRefresh} />
 
       <div className="container">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Your Timetable</h1>
+            <p className="page-subtitle">
+              {getSemesterDisplayName(semester)} • {academicYear}
+            </p>
+          </div>
+        </div>
+
         <div className="class-card">
           <h2>Current Class</h2>
           <div className="class-card-content">

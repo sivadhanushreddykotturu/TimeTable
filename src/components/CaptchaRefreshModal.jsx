@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { getCredentials } from "../utils/storage";
+import { getCaptchaUrl, getFormData, API_CONFIG } from "../config/api.js";
 
 export default function CaptchaRefreshModal({ onClose, onSuccess }) {
   const [captchaUrl, setCaptchaUrl] = useState("");
   const [captchaInput, setCaptchaInput] = useState("");
   const [captchaLoading, setCaptchaLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setCaptchaUrl(`https://tinyurl.com/klcaptcha?ts=${Date.now()}`);
+    setCaptchaUrl(getCaptchaUrl());
   }, []);
 
   const handleCaptchaLoad = () => {
@@ -22,30 +24,37 @@ export default function CaptchaRefreshModal({ onClose, onSuccess }) {
   const handleRefresh = async () => {
     const creds = getCredentials();
     if (!creds) {
-      alert("No saved credentials. Please login again.");
-      return onClose();
+      setError("No saved credentials. Please login again.");
+      setTimeout(() => onClose(), 2000);
+      return;
     }
 
-    const form = new FormData();
-    form.append("username", creds.username);
-    form.append("password", creds.password);
-    form.append("captcha", captchaInput);
-    form.append("academic_year_code", "19");
-    form.append("semester_id", "1");
+    if (!captchaInput.trim()) {
+      setError("Please enter the CAPTCHA");
+      return;
+    }
+
+    // Get stored semester and academic year
+    const storedSemester = localStorage.getItem("semester") || "odd";
+    const storedAcademicYear = localStorage.getItem("academicYear") || "2024-25";
 
     try {
-      const res = await axios.post("https://tinyurl.com/klfetcht", form);
+      const form = getFormData(creds.username, creds.password, captchaInput, storedSemester, storedAcademicYear);
+      const res = await axios.post(API_CONFIG.FETCH_URL, form);
+      
       if (res.data.success) {
         localStorage.setItem("timetable", JSON.stringify(res.data.timetable));
         onSuccess(res.data.timetable);
         onClose();
       } else {
-        alert(res.data.message || "Refresh failed");
-        setCaptchaUrl(`https://tinyurl.com/klcaptcha?ts=${Date.now()}`);
+        setError(res.data.message || "Refresh failed");
+        setCaptchaUrl(getCaptchaUrl());
         setCaptchaInput("");
       }
     } catch {
-      alert("Error refreshing timetable");
+      setError("Error refreshing timetable");
+      setCaptchaUrl(getCaptchaUrl());
+      setCaptchaInput("");
     }
   };
 
@@ -98,8 +107,22 @@ export default function CaptchaRefreshModal({ onClose, onSuccess }) {
             value={captchaInput}
             onChange={(e) => setCaptchaInput(e.target.value)}
             className="captcha-input"
+            onKeyPress={(e) => e.key === "Enter" && handleRefresh()}
           />
         </div>
+
+        {error && (
+          <div
+            style={{
+              color: "#dc3545",
+              fontSize: "14px",
+              marginBottom: "15px",
+              textAlign: "center"
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
           <button onClick={onClose} className="secondary">

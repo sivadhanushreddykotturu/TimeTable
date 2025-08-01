@@ -118,6 +118,49 @@ input::placeholder {
   color: var(--text-muted);
 }
 
+/* Form Layout */
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+}
+
+.form-select option {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
 /* Buttons */
 button {
   border-radius: 8px;
@@ -243,6 +286,13 @@ button.secondary:hover {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
+}
+
+.page-subtitle {
+  margin: 8px 0 0 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 400;
 }
 
 .action-buttons {
@@ -464,6 +514,12 @@ button.secondary:hover {
   .header-right {
     gap: 4px;
   }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
 }
 
 /* Loading states */

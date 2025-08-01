@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { getCredentials } from "../../utils/storage.js";
+import { getCaptchaUrl, getFormData, API_CONFIG } from "../config/api.js";
 
 export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
   const [captchaInput, setCaptchaInput] = useState("");
@@ -16,14 +17,12 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
       setError("");
       setImageLoading(true);
       
-      // Use the exact same URL pattern as Login.jsx
-      const url = `https://tinyurl.com/klcaptcha?ts=${Date.now()}`;
-      console.log("Loading CAPTCHA from URL:", url);
+      // Use centralized captcha URL generation
+      const url = getCaptchaUrl();
       setCaptchaUrl(url);
       
       // Add a timeout to handle cases where image takes too long
       const timeout = setTimeout(() => {
-        console.log("CAPTCHA image loading timeout");
         setImageLoading(false);
       }, 10000); // 10 seconds timeout
       
@@ -47,15 +46,14 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
       return;
     }
 
-    const form = new FormData();
-    form.append("username", creds.username);
-    form.append("password", creds.password);
-    form.append("captcha", captchaInput);
-    form.append("academic_year_code", "19");
-    form.append("semester_id", "1");
+    // Get stored semester and academic year
+    const storedSemester = localStorage.getItem("semester") || "odd";
+    const storedAcademicYear = localStorage.getItem("academicYear") || "2024-25";
 
     try {
-      const res = await axios.post("https://tinyurl.com/klfetcht", form);
+      const form = getFormData(creds.username, creds.password, captchaInput, storedSemester, storedAcademicYear);
+      const res = await axios.post(API_CONFIG.FETCH_URL, form);
+      
       if (res.data.success) {
         localStorage.setItem("timetable", JSON.stringify(res.data.timetable));
         onSuccess(res.data.timetable);
@@ -63,12 +61,12 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
       } else {
         setError(res.data.message || "Invalid CAPTCHA. Please try again.");
         // Refresh captcha image
-        setCaptchaUrl(`https://tinyurl.com/klcaptcha?ts=${Date.now()}`);
+        setCaptchaUrl(getCaptchaUrl());
         setCaptchaInput("");
       }
     } catch {
       setError("Something went wrong. Please try again.");
-      setCaptchaUrl(`https://tinyurl.com/klcaptcha?ts=${Date.now()}`);
+      setCaptchaUrl(getCaptchaUrl());
       setCaptchaInput("");
     } finally {
       setIsLoading(false);
@@ -80,8 +78,7 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
     setImageLoading(true);
     setError("");
     
-    const url = `https://tinyurl.com/klcaptcha?ts=${Date.now()}`;
-    console.log("Refreshing CAPTCHA from URL:", url);
+    const url = getCaptchaUrl();
     setCaptchaUrl(url);
     setCaptchaInput("");
     
@@ -141,11 +138,9 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
       display: imageLoading ? "none" : "block"
     }}
     onLoad={() => {
-      console.log("CAPTCHA image loaded successfully");
       setImageLoading(false);
     }}
-    onError={(e) => {
-      console.error("CAPTCHA image failed to load:", e);
+    onError={() => {
       setImageLoading(false);
       setError("Failed to load CAPTCHA image");
     }}
@@ -156,7 +151,7 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
           {refreshing && (
             <div style={{ 
               fontSize: "12px", 
-              color: "#007bff", 
+              color: "var(--accent-primary)", 
               marginBottom: "10px",
               textAlign: "center"
             }}>
