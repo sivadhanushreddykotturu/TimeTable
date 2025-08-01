@@ -4,7 +4,6 @@ import Header from "../components/Header";
 import CaptchaModal from "../components/CaptchaModal";
 import Toast from "../components/Toast";
 import { getTodaySubjects } from "../utils/subjectMapper";
-import { trackTimetableRefresh, trackPageView } from "../utils/analytics.js";
 
 const slotTimes = {
   1: { start: "07:10", end: "08:00" },
@@ -46,35 +45,64 @@ function findCurrentAndNextClass(timetable) {
 
   if (!currentSlot) return { currentClass, nextClass };
 
-  const currentCode = slots[currentSlot];
+  // Convert slots to entries and filter valid slots
+  const entries = Object.entries(slots)
+    .filter(([slot]) => parseInt(slot) <= 11)
+    .map(([slot, value]) => [parseInt(slot), value]);
 
-  // Group Current Class
-  if (currentCode && currentCode !== "-") {
-    let end = currentSlot;
-    for (let i = currentSlot + 1; i <= 11; i++) {
-      if (slots[i] === currentCode) {
-        end = i;
-      } else {
-        break;
-      }
-    }
-    currentClass = `${currentCode} (${slotTimes[currentSlot].start} - ${slotTimes[end].end})`;
+  // Find the current class block
+  let currentBlock = null;
+  let nextBlock = null;
 
-    // Find next different class after this group
-    for (let j = end + 1; j <= 11; j++) {
-      if (slots[j] && slots[j] !== "-") {
-        let nextEnd = j;
-        for (let k = j + 1; k <= 11; k++) {
-          if (slots[k] === slots[j]) {
-            nextEnd = k;
-          } else {
-            break;
-          }
-        }
-        nextClass = `${slots[j]} (${slotTimes[j].start} - ${slotTimes[nextEnd].end})`;
-        break;
-      }
+  // Merge consecutive slots like in TimetableView
+  const merged = [];
+  let i = 0;
+
+  while (i < entries.length) {
+    const [startSlot, value] = entries[i];
+    if (value === "-") {
+      i++;
+      continue;
     }
+
+    let endSlot = startSlot;
+    while (
+      i + 1 < entries.length &&
+      entries[i + 1][1] === value &&
+      entries[i + 1][0] === endSlot + 1
+    ) {
+      endSlot++;
+      i++;
+    }
+
+    merged.push({ content: value, startSlot, endSlot });
+    i++;
+  }
+
+  // Find current class
+  for (const block of merged) {
+    if (currentSlot >= block.startSlot && currentSlot <= block.endSlot) {
+      currentBlock = block;
+      break;
+    }
+  }
+
+  // Find next class
+  for (const block of merged) {
+    if (block.startSlot > currentSlot) {
+      nextBlock = block;
+      break;
+    }
+  }
+
+  // Set current class
+  if (currentBlock) {
+    currentClass = `${currentBlock.content} (${slotTimes[currentBlock.startSlot].start} - ${slotTimes[currentBlock.endSlot].end})`;
+  }
+
+  // Set next class
+  if (nextBlock) {
+    nextClass = `${nextBlock.content} (${slotTimes[nextBlock.startSlot].start} - ${slotTimes[nextBlock.endSlot].end})`;
   }
 
   return { currentClass, nextClass };
@@ -107,10 +135,12 @@ export default function Home() {
     
     // Get today's subjects
     setTodaySubjects(getTodaySubjects());
-    
-    // Track page view for analytics
-    trackPageView("Home");
   }, [timetable]);
+
+  // Separate useEffect for analytics tracking (runs only once on mount)
+  useEffect(() => {
+    // Track page view for analytics only once when component mounts
+  }, []); // Empty dependency array - runs only once
 
   const handleRefresh = () => {
     setShowCaptchaModal(true);
@@ -118,7 +148,6 @@ export default function Home() {
 
   const handleCaptchaSuccess = (newTimetable) => {
     // Track timetable refresh
-    trackTimetableRefresh();
     
     setTimetable(newTimetable);
     setTodaySubjects(getTodaySubjects());

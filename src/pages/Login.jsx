@@ -5,7 +5,6 @@ import { saveCredentials } from "../../utils/storage.js";
 import ThemeToggle from "../components/ThemeToggle.jsx";
 import Toast from "../components/Toast.jsx";
 import { getCaptchaUrl, getFormData, API_CONFIG, getCurrentAcademicYearOptions } from "../config/api.js";
-import { trackUserLogin } from "../utils/analytics.js";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -58,9 +57,6 @@ export default function Login() {
       const res = await axios.post(API_CONFIG.FETCH_URL, form);
       
       if (res.data.success) {
-        // Track successful login
-        trackUserLogin();
-        
         saveCredentials({ username, password });
         localStorage.setItem("timetable", JSON.stringify(res.data.timetable));
         localStorage.setItem("semester", semester);
