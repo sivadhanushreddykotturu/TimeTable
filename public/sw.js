@@ -1,10 +1,10 @@
-const CACHE_NAME = 'kl-timetable-v3';
+const CACHE_NAME = 'kl-timetable-v5';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/maskable_icon_x192.png',
+  '/maskable_icon_x512.png',
   '/src/main.jsx',
   '/src/App.jsx',
   '/src/index.css'
