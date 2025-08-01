@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { clearCredentials } from "../../utils/storage.js";
+import Header from "../components/Header";
 import CaptchaModal from "../components/CaptchaModal";
+import Toast from "../components/Toast";
 
 const slotTimes = {
   1: { start: "07:10", end: "08:00" },
@@ -22,6 +24,7 @@ export default function TimetableView() {
     JSON.parse(localStorage.getItem("timetable") || "{}")
   );
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const navigate = useNavigate();
 
   const refreshTimetable = () => {
@@ -30,13 +33,15 @@ export default function TimetableView() {
 
   const handleCaptchaSuccess = (newTimetable) => {
     setTimetable(newTimetable);
-    alert("Refreshed successfully.");
+    setToast({
+      show: true,
+      message: "Timetable refreshed successfully!",
+      type: "success"
+    });
   };
 
-  const logout = () => {
-    clearCredentials();
-    localStorage.removeItem("timetable");
-    navigate("/");
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, show: false }));
   };
 
   const renderDay = (day, slots) => {
@@ -84,37 +89,42 @@ export default function TimetableView() {
   };
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">Your Timetable</h1>
-        <div className="action-buttons">
-          <button onClick={() => navigate("/home")}>
-            Back to Home
-          </button>
-          <button onClick={refreshTimetable}>
-            Refresh
-          </button>
-          <button onClick={logout} className="secondary">
-            Logout
-          </button>
-        </div>
-      </div>
+    <>
+      <Header onRefresh={refreshTimetable} />
 
-      {Object.keys(timetable).length === 0 ? (
-        <div className="card">
-          <p className="text-center">No timetable loaded. Please log in.</p>
+      <div className="container">
+        <div className="page-header">
+          <h1 className="page-title">Your Timetable</h1>
+          <div className="action-buttons">
+            <button onClick={() => navigate("/home")}>
+              Back to Home
+            </button>
+          </div>
         </div>
-      ) : (
-        Object.entries(timetable).map(([day, slots]) =>
-          renderDay(day, slots)
-        )
-      )}
+
+        {Object.keys(timetable).length === 0 ? (
+          <div className="card">
+            <p className="text-center">No timetable loaded. Please log in.</p>
+          </div>
+        ) : (
+          Object.entries(timetable).map(([day, slots]) =>
+            renderDay(day, slots)
+          )
+        )}
+      </div>
 
       <CaptchaModal
         isOpen={showCaptchaModal}
         onClose={() => setShowCaptchaModal(false)}
         onSuccess={handleCaptchaSuccess}
       />
-    </div>
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={closeToast}
+      />
+    </>
   );
 }

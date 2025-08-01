@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import CaptchaModal from "../components/CaptchaModal";
+import Toast from "../components/Toast";
 
 const slotTimes = {
   1: { start: "07:10", end: "08:00" },
@@ -86,6 +87,7 @@ export default function Home() {
     JSON.parse(localStorage.getItem("timetable") || "{}")
   );
   const [showCaptchaModal, setShowCaptchaModal] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   useEffect(() => {
     const { currentClass, nextClass } = findCurrentAndNextClass(timetable);
@@ -99,7 +101,15 @@ export default function Home() {
 
   const handleCaptchaSuccess = (newTimetable) => {
     setTimetable(newTimetable);
-    alert("Timetable refreshed!");
+    setToast({
+      show: true,
+      message: "Timetable refreshed successfully!",
+      type: "success"
+    });
+  };
+
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, show: false }));
   };
 
   return (
@@ -133,6 +143,13 @@ export default function Home() {
         isOpen={showCaptchaModal}
         onClose={() => setShowCaptchaModal(false)}
         onSuccess={handleCaptchaSuccess}
+      />
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={closeToast}
       />
     </>
   );

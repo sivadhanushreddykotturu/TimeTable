@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { clearCredentials, getCredentials } from "../../utils/storage.js";
+import ThemeToggle from "./ThemeToggle.jsx";
 
 export default function Header({ onRefresh }) {
   const navigate = useNavigate();
@@ -17,12 +18,17 @@ export default function Header({ onRefresh }) {
 
   return (
     <div className="app-header">
-      <button onClick={handleLogout} className="secondary">
-        Logout
-      </button>
-      <button onClick={onRefresh}>
-        Refresh
-      </button>
+      <div className="header-left">
+        <button onClick={handleLogout} className="secondary">
+          Logout
+        </button>
+      </div>
+      <div className="header-right">
+        <ThemeToggle />
+        <button onClick={onRefresh}>
+          Refresh
+        </button>
+      </div>
     </div>
   );
 }
