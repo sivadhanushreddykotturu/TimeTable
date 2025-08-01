@@ -41,19 +41,42 @@ function findCurrentAndNextClass(timetable) {
   let currentClass = "No ongoing class";
   let nextClass = "No upcoming class";
 
-  if (currentSlot && slots[currentSlot] && slots[currentSlot] !== "-") {
-    currentClass = slots[currentSlot];
-  }
+  if (!currentSlot) return { currentClass, nextClass };
 
-  for (let i = (currentSlot || 0) + 1; i <= 11; i++) {
-    if (slots[i] && slots[i] !== "-") {
-      nextClass = slots[i];
-      break;
+  const currentCode = slots[currentSlot];
+
+  // Group Current Class
+  if (currentCode && currentCode !== "-") {
+    let end = currentSlot;
+    for (let i = currentSlot + 1; i <= 11; i++) {
+      if (slots[i] === currentCode) {
+        end = i;
+      } else {
+        break;
+      }
+    }
+    currentClass = `${currentCode} (${slotTimes[currentSlot].start} - ${slotTimes[end].end})`;
+
+    // Find next different class after this group
+    for (let j = end + 1; j <= 11; j++) {
+      if (slots[j] && slots[j] !== "-") {
+        let nextEnd = j;
+        for (let k = j + 1; k <= 11; k++) {
+          if (slots[k] === slots[j]) {
+            nextEnd = k;
+          } else {
+            break;
+          }
+        }
+        nextClass = `${slots[j]} (${slotTimes[j].start} - ${slotTimes[nextEnd].end})`;
+        break;
+      }
     }
   }
 
   return { currentClass, nextClass };
 }
+
 
 export default function Home() {
   const navigate = useNavigate();
