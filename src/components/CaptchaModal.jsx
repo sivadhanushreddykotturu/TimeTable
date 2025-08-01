@@ -60,7 +60,7 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
         onClose();
       } else {
         setError(res.data.message || "Invalid CAPTCHA. Please try again.");
-        // Refresh captcha image
+        // Sync captcha image
         setCaptchaUrl(getCaptchaUrl());
         setCaptchaInput("");
       }
@@ -82,7 +82,7 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
     setCaptchaUrl(url);
     setCaptchaInput("");
     
-    // Show refreshing message for 15 seconds
+    // Show syncing message for 15 seconds
     setTimeout(() => {
       setRefreshing(false);
     }, 15000);
@@ -118,7 +118,7 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 style={{ marginTop: 0, marginBottom: "20px" }}>
-          Enter CAPTCHA to Refresh
+          Enter CAPTCHA to ReSync
         </h3>
         
         <div className="captcha-container">
@@ -168,7 +168,7 @@ export default function CaptchaModal({ isOpen, onClose, onSuccess }) {
             }}
             disabled={isLoading || refreshing}
           >
-            Refresh CAPTCHA
+            ReSync CAPTCHA
           </button>
         </div>
 

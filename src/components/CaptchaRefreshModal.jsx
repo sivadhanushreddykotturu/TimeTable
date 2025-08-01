@@ -47,12 +47,12 @@ export default function CaptchaRefreshModal({ onClose, onSuccess }) {
         onSuccess(res.data.timetable);
         onClose();
       } else {
-        setError(res.data.message || "Refresh failed");
+        setError(res.data.message || "ReSync failed");
         setCaptchaUrl(getCaptchaUrl());
         setCaptchaInput("");
       }
     } catch {
-      setError("Error refreshing timetable");
+      setError("Error syncing timetable");
       setCaptchaUrl(getCaptchaUrl());
       setCaptchaInput("");
     }
@@ -84,7 +84,7 @@ export default function CaptchaRefreshModal({ onClose, onSuccess }) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ marginTop: 0, marginBottom: "20px" }}>Refresh Timetable</h3>
+        <h3 style={{ marginTop: 0, marginBottom: "20px" }}>ReSync Timetable</h3>
         <p className="mb-16">Enter the new CAPTCHA:</p>
 
         <div className="captcha-container">
@@ -129,7 +129,7 @@ export default function CaptchaRefreshModal({ onClose, onSuccess }) {
             Cancel
           </button>
           <button onClick={handleRefresh} className="primary">
-            Submit
+            ReSync
           </button>
         </div>
       </div>

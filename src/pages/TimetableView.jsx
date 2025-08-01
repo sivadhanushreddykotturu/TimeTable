@@ -38,7 +38,7 @@ export default function TimetableView() {
     setTimetable(newTimetable);
     setToast({
       show: true,
-      message: "Timetable refreshed successfully!",
+      message: "Timetable synced successfully!",
       type: "success"
     });
   };

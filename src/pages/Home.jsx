@@ -147,13 +147,13 @@ export default function Home() {
   };
 
   const handleCaptchaSuccess = (newTimetable) => {
-    // Track timetable refresh
+    // Track timetable sync
     
     setTimetable(newTimetable);
     setTodaySubjects(getTodaySubjects());
     setToast({
       show: true,
-      message: "Timetable refreshed successfully!",
+      message: "Timetable synced successfully!",
       type: "success"
     });
   };

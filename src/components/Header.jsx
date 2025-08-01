@@ -26,7 +26,7 @@ export default function Header({ onRefresh }) {
       <div className="header-right">
         <ThemeToggle />
         <button onClick={onRefresh}>
-          Refresh
+          ReSync
         </button>
       </div>
     </div>
