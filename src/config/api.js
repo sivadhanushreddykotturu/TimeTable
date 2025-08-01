@@ -3,10 +3,10 @@
 
 export const API_CONFIG = {
   // CAPTCHA endpoint
-  CAPTCHA_URL: import.meta.env.VITE_CAPTCHA_URL || 'https://tinyurl.com/klcaptcha',
+  CAPTCHA_URL: import.meta.env.VITE_CAPTCHA_URL,
   
   // Login/Data fetch endpoint
-  FETCH_URL: import.meta.env.VITE_FETCH_URL || 'https://tinyurl.com/klfetcht',
+  FETCH_URL: import.meta.env.VITE_FETCH_URL,
 };
 
 // Semester mapping
