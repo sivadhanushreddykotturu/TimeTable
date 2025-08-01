@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Toast from "../components/Toast";
+import { trackSubjectMapping } from "../utils/analytics.js";
 
 // Helper to extract main course code
 function extractMainCode(code) {
@@ -65,6 +66,10 @@ export default function Subjects() {
       });
       return;
     }
+    
+    // Track subject mapping usage
+    trackSubjectMapping();
+    
     const updatedSubjects = {
       ...subjects,
       [editingCode]: editingName.trim()

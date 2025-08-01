@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import CaptchaModal from "../components/CaptchaModal";
 import Toast from "../components/Toast";
 import { getTodaySubjects } from "../utils/subjectMapper";
+import { trackTimetableRefresh, trackPageView } from "../utils/analytics.js";
 
 const slotTimes = {
   1: { start: "07:10", end: "08:00" },
@@ -106,6 +107,9 @@ export default function Home() {
     
     // Get today's subjects
     setTodaySubjects(getTodaySubjects());
+    
+    // Track page view for analytics
+    trackPageView("Home");
   }, [timetable]);
 
   const handleRefresh = () => {
@@ -113,6 +117,9 @@ export default function Home() {
   };
 
   const handleCaptchaSuccess = (newTimetable) => {
+    // Track timetable refresh
+    trackTimetableRefresh();
+    
     setTimetable(newTimetable);
     setTodaySubjects(getTodaySubjects());
     setToast({
@@ -193,6 +200,8 @@ export default function Home() {
         >
           Manage Subject Names
         </button>
+
+
       </div>
 
       <CaptchaModal

@@ -4,7 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>University Timetable Viewer</title>
+    <title>KL Timetable PWA</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q0VQP0H87Q"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Q0VQP0H87Q', {
+        page_title: 'KL Timetable PWA',
+        anonymize_ip: true,
+        send_page_view: true
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
