@@ -7,6 +7,7 @@ import LoginPage from "./pages/Login.jsx";
 import HomePage from "./pages/Home.jsx";
 import TimetablePage from "./pages/TimetableView.jsx";
 import SubjectsPage from "./pages/Subjects.jsx";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Footer />
         </div>
       </Router>
+      <Analytics />
     </ThemeProvider>
   );
 }
