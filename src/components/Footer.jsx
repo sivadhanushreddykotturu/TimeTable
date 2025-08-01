@@ -11,7 +11,7 @@ export default function Footer() {
       <div className="footer-content">
         <div className="social-links">
           <a 
-            href="https://in.linkedin.com/in/siva-dhanush-kotturu-646b51322" 
+            href="https://www.linkedin.com/in/kotturu-siva-dhanush-646b51322" 
             className="social-link linkedin"
             target="_blank"
             rel="noopener noreferrer"

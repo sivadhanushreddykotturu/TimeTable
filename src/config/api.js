@@ -1,13 +1,12 @@
 // API Configuration
-// These URLs are used throughout the application
-// In production, these should be moved to environment variables
+// These URLs are loaded from environment variables for security
 
 export const API_CONFIG = {
   // CAPTCHA endpoint
-  CAPTCHA_URL: 'https://tinyurl.com/klcaptcha',
+  CAPTCHA_URL: import.meta.env.VITE_CAPTCHA_URL || 'https://tinyurl.com/klcaptcha',
   
   // Login/Data fetch endpoint
-  FETCH_URL: 'https://tinyurl.com/klfetcht',
+  FETCH_URL: import.meta.env.VITE_FETCH_URL || 'https://tinyurl.com/klfetcht',
 };
 
 // Semester mapping

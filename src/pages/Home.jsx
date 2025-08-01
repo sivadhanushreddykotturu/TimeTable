@@ -215,20 +215,22 @@ export default function Home() {
           </div>
         )}
 
-        <button 
-          onClick={() => navigate("/timetable")} 
-          className="primary full-width-mobile"
-        >
-          View Full Timetable
-        </button>
+        <div className="button-container">
+          <button 
+            onClick={() => navigate("/timetable")} 
+            className="primary full-width-mobile"
+          >
+            View Full Timetable
+          </button>
 
-        <button 
-          onClick={() => navigate("/subjects")} 
-          className="secondary full-width-mobile"
-          style={{ marginTop: "12px" }}
-        >
-          Manage Subject Names
-        </button>
+          <button 
+            onClick={() => navigate("/subjects")} 
+            className="secondary full-width-mobile"
+            style={{ marginTop: "20px" }}
+          >
+            Manage Subject Names
+          </button>
+        </div>
 
 
       </div>

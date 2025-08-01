@@ -84,7 +84,7 @@ export default function Login() {
     <>
       <div className="login-header">
         <div className="login-header-content">
-          <h1>KL Timetable PWA</h1>
+          <h1>TimeTable</h1>
           <ThemeToggle />
         </div>
       </div>
