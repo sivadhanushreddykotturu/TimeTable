@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import CaptchaModal from "../components/CaptchaModal";
 import Toast from "../components/Toast";
+import { getTodaySubjects } from "../utils/subjectMapper";
 
 const slotTimes = {
   1: { start: "07:10", end: "08:00" },
@@ -90,6 +91,7 @@ export default function Home() {
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [semester, setSemester] = useState("");
   const [academicYear, setAcademicYear] = useState("");
+  const [todaySubjects, setTodaySubjects] = useState([]);
 
   useEffect(() => {
     const { currentClass, nextClass } = findCurrentAndNextClass(timetable);
@@ -101,6 +103,9 @@ export default function Home() {
     const storedAcademicYear = localStorage.getItem("academicYear") || "2024-25";
     setSemester(storedSemester);
     setAcademicYear(storedAcademicYear);
+    
+    // Get today's subjects
+    setTodaySubjects(getTodaySubjects());
   }, [timetable]);
 
   const handleRefresh = () => {
@@ -109,6 +114,7 @@ export default function Home() {
 
   const handleCaptchaSuccess = (newTimetable) => {
     setTimetable(newTimetable);
+    setTodaySubjects(getTodaySubjects());
     setToast({
       show: true,
       message: "Timetable refreshed successfully!",
@@ -157,11 +163,35 @@ export default function Home() {
           </div>
         </div>
 
+        {todaySubjects.length > 0 && (
+          <div className="class-card">
+            <h2>Today's Subjects</h2>
+            <div className="today-subjects">
+              {todaySubjects.map((subject, index) => (
+                <div key={index} className="subject-item">
+                  <span className="subject-display-name">{subject.displayName}</span>
+                  {subject.displayName !== subject.code && (
+                    <span className="subject-original-code">({subject.code})</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button 
           onClick={() => navigate("/timetable")} 
           className="primary full-width-mobile"
         >
           View Full Timetable
+        </button>
+
+        <button 
+          onClick={() => navigate("/subjects")} 
+          className="secondary full-width-mobile"
+          style={{ marginTop: "12px" }}
+        >
+          Manage Subject Names
         </button>
       </div>
 

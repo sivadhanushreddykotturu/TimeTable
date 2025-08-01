@@ -4,6 +4,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import LoginPage from "./pages/Login.jsx";
 import HomePage from "./pages/Home.jsx";
 import TimetablePage from "./pages/TimetableView.jsx";
+import SubjectsPage from "./pages/Subjects.jsx";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/timetable" element={<TimetablePage />} />
+          <Route path="/subjects" element={<SubjectsPage />} />
         </Routes>
       </Router>
     </ThemeProvider>

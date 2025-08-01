@@ -520,6 +520,129 @@ button.secondary:hover {
     gap: 12px;
   }
 }
+
+/* Subjects Page */
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.subject-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+}
+
+.subject-code {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  word-break: break-all;
+}
+
+.subject-name {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.subject-name-input {
+  width: 100%;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.subject-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.subject-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  min-height: auto;
+}
+
+.subject-edit {
+  margin-top: 8px;
+}
+
+.subject-display {
+  margin-top: 8px;
+}
+
+/* Small button variant */
+button.small {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-height: 32px;
+}
+
+.page-actions {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* Mobile responsive for subjects */
+@media (max-width: 768px) {
+  .subjects-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .subject-card {
+    padding: 12px;
+  }
+  
+  .subject-actions {
+    flex-direction: column;
+  }
+  
+  .subject-actions button {
+    margin-bottom: 4px;
+  }
+}
+
+/* Today's Subjects */
+.today-subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subject-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.subject-item:last-child {
+  border-bottom: none;
+}
+
+.subject-display-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.subject-original-code {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
 }
 
 /* Loading states */
