@@ -4,7 +4,14 @@ import axios from "axios";
 import { saveCredentials } from "../../utils/storage.js";
 import ThemeToggle from "../components/ThemeToggle.jsx";
 import Toast from "../components/Toast.jsx";
-import { getCaptchaUrl, getFormData, API_CONFIG, getCurrentAcademicYearOptions } from "../config/api.js";
+import { getCaptchaUrl, getFormData, getFormDataFallback, API_CONFIG, getCurrentAcademicYearOptions } from "../config/api.js";
+import { logIOSInfo, testFormDataSupport } from "../utils/iosDebug.js";
+
+// iOS detection utility
+const isIOS = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -16,8 +23,25 @@ export default function Login() {
   const [academicYear, setAcademicYear] = useState("");
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [networkStatus, setNetworkStatus] = useState("online");
 
   const navigate = useNavigate();
+
+  // Network status monitoring for iOS
+  useEffect(() => {
+    const updateNetworkStatus = () => {
+      setNetworkStatus(navigator.onLine ? "online" : "offline");
+    };
+
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    updateNetworkStatus();
+
+    return () => {
+      window.removeEventListener('online', updateNetworkStatus);
+      window.removeEventListener('offline', updateNetworkStatus);
+    };
+  }, []);
 
   const refreshCaptcha = () => {
     setCaptchaLoading(true);
@@ -29,6 +53,13 @@ export default function Login() {
     // Set default academic year to current year
     const currentYear = new Date().getFullYear();
     setAcademicYear(`${currentYear}-${(currentYear+1).toString().slice(-2)}`);
+    
+    // iOS debugging information
+    if (isIOS()) {
+      logIOSInfo();
+      const formDataTest = testFormDataSupport();
+      console.log('FormData Support Test:', formDataTest);
+    }
   }, []);
 
   const handleCaptchaLoad = () => {
@@ -43,11 +74,21 @@ export default function Login() {
     setToast(prev => ({ ...prev, show: false }));
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (retryCount = 0) => {
     if (!username || !password || !captcha || !semester || !academicYear) {
       setToast({
         show: true,
         message: "Please fill all fields.",
+        type: "error"
+      });
+      return;
+    }
+
+    // Check network status for iOS
+    if (isIOS() && !navigator.onLine) {
+      setToast({
+        show: true,
+        message: "No internet connection. Please check your network and try again.",
         type: "error"
       });
       return;
@@ -62,8 +103,58 @@ export default function Login() {
       // Add a small delay to make loading state visible
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const form = getFormData(username, password, captcha, semester, academicYear);
-      const res = await axios.post(API_CONFIG.FETCH_URL, form);
+      let requestData;
+      let axiosConfig;
+
+      // iOS-specific handling with fallback
+      if (isIOS()) {
+        console.log('iOS detected, using enhanced request handling');
+        
+        try {
+          // Try FormData first
+          requestData = getFormData(username, password, captcha, semester, academicYear);
+          axiosConfig = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Accept': 'application/json, text/plain, */*',
+              'User-Agent': navigator.userAgent,
+            },
+            timeout: 30000, // 30 second timeout for iOS
+            withCredentials: false, // Disable credentials for CORS
+          };
+          
+          // Double-check form data
+          for (let [key, value] of requestData.entries()) {
+            console.log(`Form data: ${key} = ${value}`);
+          }
+        } catch (formDataError) {
+          console.log('FormData failed, using URLSearchParams fallback');
+          // Fallback to URLSearchParams
+          requestData = getFormDataFallback(username, password, captcha, semester, academicYear);
+          axiosConfig = {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json, text/plain, */*',
+              'User-Agent': navigator.userAgent,
+            },
+            timeout: 30000,
+            withCredentials: false,
+          };
+        }
+      } else {
+        // Non-iOS devices
+        requestData = getFormData(username, password, captcha, semester, academicYear);
+        axiosConfig = {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json, text/plain, */*',
+          },
+          timeout: 15000,
+          withCredentials: false,
+        };
+      }
+
+      const res = await axios.post(API_CONFIG.FETCH_URL, requestData, axiosConfig);
       
       if (res.data.success) {
         saveCredentials({ username, password });
@@ -81,10 +172,48 @@ export default function Login() {
         refreshCaptcha();
         setIsLoggingIn(false); // Allow retry immediately
       }
-    } catch {
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      // iOS-specific error handling
+      if (isIOS()) {
+        if (error.code === 'ECONNABORTED') {
+          errorMessage = "Request timed out. Please check your internet connection and try again.";
+        } else if (error.response) {
+          // Server responded with error status
+          errorMessage = `Server error (${error.response.status}). Please try again.`;
+        } else if (error.request) {
+          // Network error
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        } else {
+          // Other error
+          errorMessage = "An unexpected error occurred. Please try again.";
+        }
+      } else {
+        // Non-iOS error handling
+        if (error.response) {
+          errorMessage = `Server error (${error.response.status}). Please try again.`;
+        } else if (error.request) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        }
+      }
+      
+      // iOS retry mechanism
+      if (isIOS() && retryCount < 2 && (error.code === 'ECONNABORTED' || error.request)) {
+        console.log(`iOS retry attempt ${retryCount + 1}/2`);
+        setIsLoggingIn(false);
+        // Wait 2 seconds before retry
+        setTimeout(() => {
+          handleLogin(retryCount + 1);
+        }, 2000);
+        return;
+      }
+      
       setToast({
         show: true,
-        message: "Something went wrong. Please try again.",
+        message: errorMessage,
         type: "error"
       });
       refreshCaptcha();
@@ -99,6 +228,17 @@ export default function Login() {
           <h1>TimeTable</h1>
           <ThemeToggle />
         </div>
+        {isIOS() && networkStatus === "offline" && (
+          <div style={{
+            background: "#ef4444",
+            color: "white",
+            padding: "8px 16px",
+            textAlign: "center",
+            fontSize: "14px"
+          }}>
+            ⚠️ No internet connection. Please check your network.
+          </div>
+        )}
       </div>
 
       <div className="container">
