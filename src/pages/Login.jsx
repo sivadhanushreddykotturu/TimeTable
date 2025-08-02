@@ -4,14 +4,7 @@ import axios from "axios";
 import { saveCredentials } from "../../utils/storage.js";
 import ThemeToggle from "../components/ThemeToggle.jsx";
 import Toast from "../components/Toast.jsx";
-import { getCaptchaUrl, getFormData, getAcademicYearCode, SEMESTER_MAP, API_CONFIG, getCurrentAcademicYearOptions } from "../config/api.js";
-import { logIOSInfo, testFormDataSupport } from "../utils/iosDebug.js";
-
-// iOS detection utility
-const isIOS = () => {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-};
+import { getCaptchaUrl, getFormData, API_CONFIG, getCurrentAcademicYearOptions } from "../config/api.js";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -22,26 +15,8 @@ export default function Login() {
   const [semester, setSemester] = useState("odd");
   const [academicYear, setAcademicYear] = useState("");
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState("online");
 
   const navigate = useNavigate();
-
-  // Network status monitoring
-  useEffect(() => {
-    const updateNetworkStatus = () => {
-      setNetworkStatus(navigator.onLine ? "online" : "offline");
-    };
-
-          window.addEventListener('online', updateNetworkStatus);
-      window.addEventListener('offline', updateNetworkStatus);
-    updateNetworkStatus();
-
-    return () => {
-      window.removeEventListener('online', updateNetworkStatus);
-      window.removeEventListener('offline', updateNetworkStatus);
-    };
-  }, []);
 
   const refreshCaptcha = () => {
     setCaptchaLoading(true);
@@ -52,14 +27,7 @@ export default function Login() {
     refreshCaptcha();
     // Set default academic year to current year
     const currentYear = new Date().getFullYear();
-    setAcademicYear(`${currentYear}-${(currentYear + 1).toString().slice(-2)}`);
-
-    // iOS debugging information
-    if (isIOS()) {
-      logIOSInfo();
-      const formDataTest = testFormDataSupport();
-      console.log('FormData Support Test:', formDataTest);
-    }
+    setAcademicYear(`${currentYear}-${(currentYear+1).toString().slice(-2)}`);
   }, []);
 
   const handleCaptchaLoad = () => {
@@ -68,163 +36,47 @@ export default function Login() {
 
   const handleCaptchaError = () => {
     setCaptchaLoading(false);
-    setToast({
-      show: true,
-      message: "Failed to load CAPTCHA. Please try again.",
-      type: "error",
-    });
   };
 
   const closeToast = () => {
     setToast(prev => ({ ...prev, show: false }));
   };
 
-  const handleLogin = async (retryCount = 0, useFormDataOnIOS = false) => {
+  const handleLogin = async () => {
     if (!username || !password || !captcha || !semester || !academicYear) {
       setToast({
         show: true,
         message: "Please fill all fields.",
-        type: "error",
+        type: "error"
       });
       return;
     }
-
-    if (captchaLoading) {
-      setToast({
-        show: true,
-        message: "CAPTCHA is still loading. Please wait.",
-        type: "error",
-      });
-      return;
-    }
-
-    if (isIOS() && !navigator.onLine) {
-      setToast({
-        show: true,
-        message: "No internet connection. Please check your network and try again.",
-        type: "error",
-      });
-      return;
-    }
-
-    if (isLoggingIn) return;
-
-    setIsLoggingIn(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for UI feedback
-
-      let requestData;
-      let axiosConfig;
-
-             if (isIOS() && !useFormDataOnIOS) {
-         // Use JSON for iOS by default - convert to server-expected format
-         requestData = {
-           username,
-           password,
-           captcha,
-           academic_year_code: getAcademicYearCode(academicYear),
-           semester_id: SEMESTER_MAP[semester],
-         };
-        axiosConfig = {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          timeout: 30000,
-          withCredentials: false,
-        };
-      } else {
-        // Use FormData for Android (unchanged) and iOS fallback
-        requestData = getFormData(username, password, captcha, semester, academicYear);
-        axiosConfig = {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json, text/plain, */*',
-          },
-          timeout: isIOS() ? 30000 : 15000,
-          withCredentials: false,
-        };
-      }
-
-             // Log request for debugging
-       console.log('Request method:', isIOS() && !useFormDataOnIOS ? 'JSON' : 'FormData');
-       console.log('Request data:', isIOS() && !useFormDataOnIOS ? requestData : [...requestData.entries()]);
-       console.log('Request URL:', API_CONFIG.FETCH_URL);
-       console.log('Request headers:', axiosConfig.headers);
-
-      const res = await axios.post(API_CONFIG.FETCH_URL, requestData, axiosConfig);
-
-      console.log('Response status:', res.status);
-      console.log('Response data:', res.data);
-
+      const form = getFormData(username, password, captcha, semester, academicYear);
+      const res = await axios.post(API_CONFIG.FETCH_URL, form);
+      
       if (res.data.success) {
         saveCredentials({ username, password });
         localStorage.setItem("timetable", JSON.stringify(res.data.timetable));
         localStorage.setItem("semester", semester);
         localStorage.setItem("academicYear", academicYear);
-        setIsLoggingIn(false);
         navigate("/home");
       } else {
         setToast({
           show: true,
-          message: res.data.message || "Login failed. Please check your credentials and captcha.",
-          type: "error",
+          message: res.data.message || "Login failed.",
+          type: "error"
         });
         refreshCaptcha();
-        setIsLoggingIn(false);
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      console.error('Error response:', error.response?.data);
-
-      let errorMessage = "Something went wrong. Please try again.";
-
-      if (error.response) {
-        const status = error.response.status;
-        if (status === 422) {
-          errorMessage = "Invalid request data. Please check your credentials and captcha.";
-          // Retry with FormData on iOS if JSON fails
-          if (isIOS() && !useFormDataOnIOS && retryCount < 1) {
-            console.log('Retrying with FormData on iOS...');
-            setIsLoggingIn(false);
-            setTimeout(() => {
-              handleLogin(retryCount + 1, true);
-            }, 2000);
-            return;
-          }
-        } else if (status === 401) {
-          errorMessage = "Invalid credentials. Please check your username and password.";
-        } else if (status === 403) {
-          errorMessage = "Access denied. Please check your credentials.";
-        } else if (status === 402) {
-          errorMessage = "Server indicates payment required. Contact support.";
-        } else {
-          errorMessage = `Server error (${status}). Please try again.`;
-        }
-      } else if (error.code === 'ECONNABORTED') {
-        errorMessage = "Request timed out. Please check your internet connection.";
-      } else if (error.request) {
-        errorMessage = "Network error. Please check your internet connection.";
-      }
-
-      // General retry for network issues
-      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.request)) {
-        console.log(`Retry attempt ${retryCount + 1}/2`);
-        setIsLoggingIn(false);
-        setTimeout(() => {
-          handleLogin(retryCount + 1, useFormDataOnIOS);
-        }, 2000);
-        return;
-      }
-
+    } catch {
       setToast({
         show: true,
-        message: errorMessage,
-        type: "error",
+        message: "Something went wrong.",
+        type: "error"
       });
       refreshCaptcha();
-      setIsLoggingIn(false);
     }
   };
 
@@ -235,17 +87,6 @@ export default function Login() {
           <h1>TimeTable</h1>
           <ThemeToggle />
         </div>
-        {isIOS() && networkStatus === "offline" && (
-          <div style={{
-            background: "#ef4444",
-            color: "white",
-            padding: "8px 16px",
-            textAlign: "center",
-            fontSize: "14px"
-          }}>
-            ⚠️ No internet connection. Please check your network.
-          </div>
-        )}
       </div>
 
       <div className="container">
@@ -345,19 +186,8 @@ export default function Login() {
             />
           </div>
 
-          {isLoggingIn && (
-            <p className="text-center mb-16" style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
-              Please wait while we log you in...
-            </p>
-          )}
-          
-          <button 
-            onClick={() => handleLogin(0, false)}
-            className="primary full-width-mobile"
-            disabled={isLoggingIn}
-            style={{ opacity: isLoggingIn ? 0.7 : 1, cursor: isLoggingIn ? "not-allowed" : "pointer" }}
-          >
-            {isLoggingIn ? "Logging in..." : "Login"}
+          <button onClick={handleLogin} className="primary full-width-mobile">
+            Login
           </button>
         </div>
       </div>
