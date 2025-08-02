@@ -1,6 +1,6 @@
 {
-  "name": "TimeTable",
-  "short_name": "TimeTable",
+  "name": "KL Timetable",
+  "short_name": "KL Timetable",
   "description": "A Progressive Web App for KL University timetable management",
   "start_url": "/",
   "display": "standalone",
@@ -26,5 +26,12 @@
   ],
   "categories": ["education", "productivity"],
   "lang": "en",
-  "dir": "ltr"
+  "dir": "ltr",
+  "display_override": ["standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 } 

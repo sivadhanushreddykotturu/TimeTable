@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AuthGuard from "./components/AuthGuard.jsx";
 import Footer from "./components/Footer.jsx";
+import PWAInstallPrompt from "./components/PWAInstallPrompt.jsx";
 import LoginPage from "./pages/Login.jsx";
 import HomePage from "./pages/Home.jsx";
 import TimetablePage from "./pages/TimetableView.jsx";
@@ -25,6 +26,7 @@ function App() {
             <Route path="/subjects" element={<SubjectsPage />} />
           </Routes>
           <Footer />
+          <PWAInstallPrompt />
         </div>
       </Router>
       <Analytics />

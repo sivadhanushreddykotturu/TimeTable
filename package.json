@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:analyze": "vite build --mode analyze",
+    "preview": "vite preview",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "optimize": "node scripts/optimize-assets.js",
+    "build:pwa": "npm run optimize && vite build"
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
