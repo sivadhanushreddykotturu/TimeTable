@@ -15,6 +15,7 @@ export default function Login() {
   const [semester, setSemester] = useState("odd");
   const [academicYear, setAcademicYear] = useState("");
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const navigate = useNavigate();
 
@@ -52,7 +53,15 @@ export default function Login() {
       return;
     }
 
+    // Prevent multiple clicks only during API call
+    if (isLoggingIn) return;
+
+    setIsLoggingIn(true);
+
     try {
+      // Add a small delay to make loading state visible
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const form = getFormData(username, password, captcha, semester, academicYear);
       const res = await axios.post(API_CONFIG.FETCH_URL, form);
       
@@ -61,22 +70,25 @@ export default function Login() {
         localStorage.setItem("timetable", JSON.stringify(res.data.timetable));
         localStorage.setItem("semester", semester);
         localStorage.setItem("academicYear", academicYear);
+        setIsLoggingIn(false); // Reset state before navigation
         navigate("/home");
       } else {
         setToast({
           show: true,
-          message: res.data.message || "Login failed.",
+          message: res.data.message || "Login failed. Please check your credentials and captcha.",
           type: "error"
         });
         refreshCaptcha();
+        setIsLoggingIn(false); // Allow retry immediately
       }
     } catch {
       setToast({
         show: true,
-        message: "Something went wrong.",
+        message: "Something went wrong. Please try again.",
         type: "error"
       });
       refreshCaptcha();
+      setIsLoggingIn(false); // Allow retry immediately
     }
   };
 
@@ -186,8 +198,19 @@ export default function Login() {
             />
           </div>
 
-          <button onClick={handleLogin} className="primary full-width-mobile">
-            Login
+          {isLoggingIn && (
+            <p className="text-center mb-16" style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
+              Please wait while we log you in...
+            </p>
+          )}
+          
+          <button 
+            onClick={handleLogin} 
+            className="primary full-width-mobile"
+            disabled={isLoggingIn}
+            style={{ opacity: isLoggingIn ? 0.7 : 1, cursor: isLoggingIn ? "not-allowed" : "pointer" }}
+          >
+            {isLoggingIn ? "Logging in..." : "Login"}
           </button>
         </div>
       </div>
