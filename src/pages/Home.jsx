@@ -87,11 +87,28 @@ function findCurrentAndNextClass(timetable) {
     }
   }
 
-  // Find next class (always look for next class, regardless of current slot)
-  for (const block of merged) {
-    if (!currentSlot || block.startSlot > currentSlot) {
-      nextBlock = block;
-      break;
+  // Find next class
+  if (currentSlot) {
+    // If we're in an active slot, find the next class after current slot
+    for (const block of merged) {
+      if (block.startSlot > currentSlot) {
+        nextBlock = block;
+        break;
+      }
+    }
+  } else {
+    // If we're not in an active slot (break time), find the next upcoming class
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    for (const block of merged) {
+      const [sh, sm] = slotTimes[block.startSlot].start.split(":").map(Number);
+      const startMinutes = sh * 60 + sm;
+      
+      if (startMinutes > currentMinutes) {
+        nextBlock = block;
+        break;
+      }
     }
   }
 
