@@ -64,11 +64,7 @@ export default defineConfig({
         categories: ['education', 'productivity'],
         lang: 'en',
         dir: 'ltr'
-      },
-      // Disable automatic service worker generation to use our custom one
-      strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'sw.js'
+      }
     })
   ],
   server: {
