@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
@@ -63,7 +64,11 @@ export default defineConfig({
         categories: ['education', 'productivity'],
         lang: 'en',
         dir: 'ltr'
-      }
+      },
+      // Disable automatic service worker generation to use our custom one
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js'
     })
   ],
   server: {
@@ -73,10 +78,38 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          utils: ['axios']
+        manualChunks: (id) => {
+          // More aggressive code splitting
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('react-router')) {
+              return 'vendor-router';
+            }
+            if (id.includes('axios')) {
+              return 'vendor-axios';
+            }
+            if (id.includes('@vercel/analytics')) {
+              return 'vendor-analytics';
+            }
+            return 'vendor';
+          }
+          if (id.includes('src/components/')) {
+            return 'components';
+          }
+          if (id.includes('src/pages/')) {
+            return 'pages';
+          }
+          if (id.includes('src/contexts/')) {
+            return 'contexts';
+          }
+          if (id.includes('src/utils/')) {
+            return 'utils';
+          }
+          if (id.includes('src/config/')) {
+            return 'config';
+          }
         },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.');
@@ -93,25 +126,38 @@ export default defineConfig({
         entryFileNames: 'assets/js/[name]-[hash].js',
       }
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 300, // Even lower warning limit
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+        passes: 3,
+        unsafe: true,
+        unsafe_comps: true,
+        unsafe_Function: true,
+        unsafe_math: true,
+        unsafe_proto: true,
+        unsafe_regexp: true,
+        unsafe_undefined: true
       },
       mangle: {
-        safari10: true
+        safari10: true,
+        toplevel: true
       }
     },
     target: 'es2015',
-    assetsInlineLimit: 4096, // 4kb
+    assetsInlineLimit: 1024, // Reduce to 1kb
     cssCodeSplit: true,
     sourcemap: false
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
     exclude: ['@vercel/analytics']
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
+    pure: ['console.log', 'console.info', 'console.debug', 'console.warn']
   }
 })
