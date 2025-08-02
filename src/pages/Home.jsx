@@ -43,8 +43,6 @@ function findCurrentAndNextClass(timetable) {
   let currentClass = "No ongoing class";
   let nextClass = "No upcoming class";
 
-  if (!currentSlot) return { currentClass, nextClass };
-
   // Convert slots to entries and filter valid slots
   const entries = Object.entries(slots)
     .filter(([slot]) => parseInt(slot) <= 11)
@@ -79,17 +77,19 @@ function findCurrentAndNextClass(timetable) {
     i++;
   }
 
-  // Find current class
-  for (const block of merged) {
-    if (currentSlot >= block.startSlot && currentSlot <= block.endSlot) {
-      currentBlock = block;
-      break;
+  // Find current class (only if we're in a valid slot)
+  if (currentSlot) {
+    for (const block of merged) {
+      if (currentSlot >= block.startSlot && currentSlot <= block.endSlot) {
+        currentBlock = block;
+        break;
+      }
     }
   }
 
-  // Find next class
+  // Find next class (always look for next class, regardless of current slot)
   for (const block of merged) {
-    if (block.startSlot > currentSlot) {
+    if (!currentSlot || block.startSlot > currentSlot) {
       nextBlock = block;
       break;
     }
