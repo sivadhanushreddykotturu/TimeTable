@@ -4,7 +4,7 @@ import axios from "axios";
 import { saveCredentials } from "../../utils/storage.js";
 import ThemeToggle from "../components/ThemeToggle.jsx";
 import Toast from "../components/Toast.jsx";
-import { getCaptchaUrl, getFormData, getFormDataFallback, API_CONFIG, getCurrentAcademicYearOptions } from "../config/api.js";
+import { getCaptchaUrl, getFormData, API_CONFIG, getCurrentAcademicYearOptions } from "../config/api.js";
 import { logIOSInfo, testFormDataSupport } from "../utils/iosDebug.js";
 
 // iOS detection utility
@@ -106,55 +106,30 @@ export default function Login() {
       let requestData;
       let axiosConfig;
 
-      // iOS-specific handling with fallback
-      if (isIOS()) {
-        console.log('iOS detected, using enhanced request handling');
-        
-        try {
-          // Try FormData first
-          requestData = getFormData(username, password, captcha, semester, academicYear);
-          axiosConfig = {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Accept': 'application/json, text/plain, */*',
-              'User-Agent': navigator.userAgent,
-            },
-            timeout: 30000, // 30 second timeout for iOS
-            withCredentials: false, // Disable credentials for CORS
-          };
-          
-          // Double-check form data
-          for (let [key, value] of requestData.entries()) {
-            console.log(`Form data: ${key} = ${value}`);
-          }
-        } catch (formDataError) {
-          console.log('FormData failed, using URLSearchParams fallback');
-          // Fallback to URLSearchParams
-          requestData = getFormDataFallback(username, password, captcha, semester, academicYear);
-          axiosConfig = {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Accept': 'application/json, text/plain, */*',
-              'User-Agent': navigator.userAgent,
-            },
-            timeout: 30000,
-            withCredentials: false,
-          };
-        }
-      } else {
-        // Non-iOS devices
-        requestData = getFormData(username, password, captcha, semester, academicYear);
-        axiosConfig = {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json, text/plain, */*',
-          },
-          timeout: 15000,
-          withCredentials: false,
-        };
+      // Use the same approach for both iOS and Android to ensure compatibility
+      requestData = getFormData(username, password, captcha, semester, academicYear);
+      axiosConfig = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json, text/plain, */*',
+        },
+        timeout: isIOS() ? 30000 : 15000, // Longer timeout for iOS
+        withCredentials: false,
+      };
+
+      // Log request data for debugging
+      console.log('Request data:');
+      for (let [key, value] of requestData.entries()) {
+        console.log(`${key}: ${value}`);
       }
+      console.log('Request URL:', API_CONFIG.FETCH_URL);
+      console.log('Request headers:', axiosConfig.headers);
 
       const res = await axios.post(API_CONFIG.FETCH_URL, requestData, axiosConfig);
+      
+      // Log response for debugging
+      console.log('Response status:', res.status);
+      console.log('Response data:', res.data);
       
       if (res.data.success) {
         saveCredentials({ username, password });
@@ -177,32 +152,32 @@ export default function Login() {
       
       let errorMessage = "Something went wrong. Please try again.";
       
-      // iOS-specific error handling
-      if (isIOS()) {
-        if (error.code === 'ECONNABORTED') {
-          errorMessage = "Request timed out. Please check your internet connection and try again.";
-        } else if (error.response) {
-          // Server responded with error status
-          errorMessage = `Server error (${error.response.status}). Please try again.`;
-        } else if (error.request) {
-          // Network error
-          errorMessage = "Network error. Please check your internet connection and try again.";
+      // Enhanced error handling for all platforms
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        if (status === 422) {
+          errorMessage = "Invalid request data. Please check your credentials and captcha, then try again.";
+        } else if (status === 401) {
+          errorMessage = "Invalid credentials. Please check your username and password.";
+        } else if (status === 403) {
+          errorMessage = "Access denied. Please check your credentials.";
         } else {
-          // Other error
-          errorMessage = "An unexpected error occurred. Please try again.";
+          errorMessage = `Server error (${status}). Please try again.`;
         }
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = "Request timed out. Please check your internet connection and try again.";
+      } else if (error.request) {
+        // Network error
+        errorMessage = "Network error. Please check your internet connection and try again.";
       } else {
-        // Non-iOS error handling
-        if (error.response) {
-          errorMessage = `Server error (${error.response.status}). Please try again.`;
-        } else if (error.request) {
-          errorMessage = "Network error. Please check your internet connection and try again.";
-        }
+        // Other error
+        errorMessage = "An unexpected error occurred. Please try again.";
       }
       
-      // iOS retry mechanism
-      if (isIOS() && retryCount < 2 && (error.code === 'ECONNABORTED' || error.request)) {
-        console.log(`iOS retry attempt ${retryCount + 1}/2`);
+      // Retry mechanism for network issues
+      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.request)) {
+        console.log(`Retry attempt ${retryCount + 1}/2`);
         setIsLoggingIn(false);
         // Wait 2 seconds before retry
         setTimeout(() => {
